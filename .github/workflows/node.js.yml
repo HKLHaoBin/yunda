@@ -1,0 +1,50 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # 或者是你希望部署的分支
+  pull_request:
+    branches:
+      - main  # 对于 pull request 也可以触发这个工作流
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 步骤1: 检出代码
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    # 步骤2: 设置 Node.js 环境，选择 Node.js 20.x LTS
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+
+    # 步骤3: 安装 pnpm
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    # 步骤4: 安装依赖
+    - name: Install dependencies
+      run: pnpm install
+
+    # 步骤5: 构建项目
+    - name: Build project
+      run: pnpm build  # 构建静态文件到 build/ 或 dist/ 目录
+
+    # 步骤6: 部署到 GitHub Pages
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}  # GitHub Actions 自动生成的 token，授权推送
+        publish_dir: ./dist  # 构建输出目录（根据你的项目调整，通常是 dist/ 或 build/）
+
+    # 步骤7: 清理临时文件
+    - name: Clean up temporary files
+      run: |
+        rm -rf ./node_modules  # 删除 node_modules 文件夹
+        rm -rf ./dist  # 删除构建输出的 dist 文件夹
+        echo "Temporary files cleaned up."
